@@ -113,11 +113,30 @@ var heuristic = function(state, maximizingPlayer){
 	//This is how you can retrieve the minimizing player.
     var minimizingPlayer = (maximizingPlayer == 'x') ? 'o' : 'x';
 
-	//An example.
-    var linesOfLengthTwoForX = state.numLines(2, 'x')
 
+	// 	var linesOfLengthThreeForMaximizingPlayer = state.numLines(3, maximizingPlayer)
+	// 	var linesOfLengthThreeForMinimizingPlayer = state.numLines(3, minimizingPlayer)
+	// //An example.
+	// 	var linesOfLengthTwoForMaximizingPlayer = state.numLines(2, maximizingPlayer)
+	// 	var linesOfLengthTwoForMinimizingPlayer = state.numLines(2, minimizingPlayer)
     //Your code here.  Don't return random, obviously.
-	return Math.random()
+		 //var linesOfLengthOneForMaximizingPlayer = state.numLines(1, maximizingPlayer)
+		 //var linesOfLengthOneForMinimizingPlayer = state.numLines(1, minimizingPlayer)
+	//return Math.random()
+
+		var evaluatePlayer = function(somePlayer){
+			return [2, 3, 4].reduce(function(total, numLines) {
+				return total + Math.pow(5, numLines) * state.numLines(numLines, somePlayer)
+			})
+		}
+
+		return evaluatePlayer(maximizingPlayer) - evaluatePlayer(minimizingPlayer)
+	// return linesOfLengthThreeForMaximizingPlayer
+	// + linesOfLengthTwoForMaximizingPlayer
+	// - linesOfLengthTwoForMinimizingPlayer
+	// -  linesOfLengthThreeForMinimizingPlayer
+	//  + linesOfLengthOneForMaximizingPlayer
+	//  - linesOfLengthOneForMinimizingPlayer
 }
 
 
@@ -145,11 +164,31 @@ var minimax = function(state, depth, maximizingPlayer){
 	var minimizingPlayer = (maximizingPlayer == 'x') ? 'o' : 'x';
 	var possibleStates = state.nextStates();
 	var currentPlayer = state.nextMovePlayer;
-	//Your code here.
-	return Math.random();
+
+	//base case
+	if (depth === 0 || possibleStates.length === 0){
+		return heuristic(state, maximizingPlayer )
+	}
+	//when we are currently maximizingPlayer
+	else if (currentPlayer === maximizingPlayer){
+		let bestValue = Number.MIN_SAFE_INTEGER
+		//go through each child state
+		possibleStates.forEach((possibleState) => {
+			let value = minimax(possibleState, depth - 1, minimizingPlayer)
+			bestValue = Math.max(bestValue, value)
+		})
+		return bestValue
+	}
+	//when we are the minimizingPlayer
+	else {
+		let bestValue = Number.MAX_SAFE_INTEGER
+		possibleStates.forEach((possibleState) => {
+			let value = minimax(possibleState, depth - 1, maximizingPlayer)
+			bestValue = Math.min(bestValue, value)
+		})
+		return bestValue
+	}
 }
-
-
 
 /* minimaxAlphaBetaWrapper is a pre-written function, but it will not work
    unless you fill in minimaxAB within it.
@@ -171,6 +210,41 @@ var minimaxAlphaBetaWrapper = function(state, depth, maximizingPlayer){
     does; this is why it is a very high value to start with.
 	*/
 	var minimaxAB = function(state, depth, alpha, beta){
+		var minimizingPlayer = (maximizingPlayer == 'x') ? 'o' : 'x';
+		var possibleStates = state.nextStates();
+		var currentPlayer = state.nextMovePlayer;
+		//base case
+		if (depth === 0 || possibleStates.length === 0){
+			return heuristic(state, maximizingPlayer )
+		} else {
+			if (maximizingPlayer === currentPlayer){
+				var bestMoveSoFar = -10000000
+				for (var x = 0; x < possibleStates.length; x++){
+					var nextSate = possibleStates[x]
+					var valueOfState = minimaxAB(nextSate, depth - 1, alpha, beta)
+					alpha = Math.max(alpha, valueOfState)
+					bestMoveSoFar = Math.max(bestMoveSoFar, valueOfState)
+					if ( alpha > beta){
+						return bestMoveSoFar
+					}
+				}
+				return bestMoveSoFar
+			}
+			else{
+				if (maximizingPlayer === currentPlayer){
+					var bestMoveSoFar = 10000000
+					for (var x = 0; x < possibleStates.length; x++){
+						var nextSate = possibleStates[x]
+						var valueOfState = minimaxAB(nextSate, depth - 1, alpha, beta)
+						beta = Math.min(beta, valueOfState)
+						bestMoveSoFar = Math.min(bestMoveSoFar, valueOfState)
+						if ( alpha > beta){
+							return bestMoveSoFar
+						}
+					}
+					return bestMoveSoFar
+			}
+		}
 	}
 
 	return minimaxAB(state, depth, -100000,100000)
